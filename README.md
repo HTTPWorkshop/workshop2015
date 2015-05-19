@@ -1,0 +1,1 @@
+This is the work area of the [HTTP Workshop](https://httpworkshop.github.io/).
