@@ -1,0 +1,251 @@
+/* reveal overrides ----------------------------------------------------------*/
+.reveal, body, li, h1, h2, h3, h4 {
+    /*font-family: "american typewriter"!important;*/
+    text-transform: none !important;
+    color: #333 !important;
+}
+.reveal a {
+    color: #555 !important;
+}
+.reveal .controls div.navigate-right {
+    border-left-color: #90cc00!important;
+}
+.reveal .controls div.navigate-left {
+    border-right-color: #90cc00!important;
+}
+.reveal .controls div.navigate-up {
+    border-bottom-color: #90cc00!important;
+}
+.reveal .controls div.navigate-down {
+    border-top-color: #90cc00!important;
+}
+.reveal .progress span {
+    background: #90cc00 !important;
+}
+
+.reveal code {
+    background: #efefef;
+    border-radius: .1em;
+}
+
+/********************************************************************/
+/* BACKGROUND                                                       */
+/********************************************************************/
+.backlogo {
+    z-index: -100;
+    margin: -80px auto 0px auto;
+    padding: 0;
+    width: 100%;
+    height: 500px;
+    position: absolute;
+    top: 0; left: 0;
+    background: transparent url("sensa.jpg") top center repeat-x;
+    background-position: center -0px;
+    filter: blur(12px);
+    -webkit-filter: blur(24px);
+    -moz-filter: blur(12px);
+}
+
+/* specials     --------------------------------------------------------------*/
+p.small {
+    font-size: 16pt;
+}
+
+ul.unbullet {
+    list-style: none;
+}
+ul.stacked li {
+    border-bottom: 1px solid #666;
+}
+.slam {
+    transform: rotate(-45deg);
+    -webkit-transform: rotate(-30deg);
+}
+/* column chart --------------------------------------------------------------*/
+.chart {
+}
+.chart table {
+    border-collapse: collapse;
+}
+.chart td {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+.chart td, .chart tr, .chart th {
+    border: none !important;
+    text-align: center!important;
+}
+
+.col-chart {
+}
+
+.chart .legend {
+    font-size: 18pt;
+    position: absolute;
+    top: 20%;
+    right: -8.5em;
+    text-align: left;
+}
+.chart .legend-left {
+    left: -8.5em !important;
+}
+.chart .legend ul {
+    list-style-type: none;
+}
+.chart .legend li {
+    border-left: .7em solid black;
+    padding: .2em;
+    border-color: red;
+}
+.chart .legend li.seq-1 {
+    border-color: orange;
+}
+.chart .legend li.seq-2 {
+    border-color: orange;
+}
+.chart .legend li.seq-3 {
+    border-color: yellow;
+}
+.chart .legend li.seq-4 {
+    border-color: turquoise;
+}
+.chart .legend li.seq-5 {
+    border-color: lightblue;
+}
+.chart .legend li.seq-6 {
+    border-color: blue;
+}
+.chart .legend li.seq-7 {
+    border-color: violet;
+}
+.chart .legend li.seq-8 {
+    border-color: purple;
+}
+.chart .legend li.seq-9 {
+    border-color: #90cc00;
+}
+.animated-chart .column {
+    opacity: .5;
+}
+
+.chart-area {
+}
+
+.col-chart .chart-area {
+    margin: .2em auto!important;
+    height: 10em; 
+    text-align: center;
+    width: 1.2em;
+    position: relative;
+    overflow: hidden;
+}
+
+.chart .x-axis {
+    border-top: solid 1px black !important;
+}
+
+.col-chart td {
+    width: 1em;
+}
+
+.chart .x-axis td {
+    font-size: 18pt;
+    text-align: center;
+    padding: .1em !important;
+}
+.chart .x-legend {
+    font-size: 24pt;
+}
+.chart .y-axis {
+    font-size: 18pt;
+    text-align: left;
+    border-top: 1px solid black;
+    border-left: 1px solid black;
+}
+.chart .y-axis .right {
+    float: right;
+}
+.chart .y-legend {
+    font-size: 24pt;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 13em;
+    -webkit-transform: translate(-7.2em, 5.5em) rotate(90deg);
+    transform: rotate(90deg);
+}
+.chart .column {
+    height: 100%; 
+    width: 1em;
+    margin: 0 auto;
+    background-color: red;
+    position: absolute; 
+}
+.chart .ref-val {
+    background-color: #444!important;
+}
+.chart .ref-val2 {
+    background-color: #888!important;
+}
+
+/* animated charts------------------------------------------------------------*/
+
+.animated-chart {
+    position: relative;
+    margin: auto;
+    height: 13em;
+}
+.animated-chart .chart {
+    position: absolute;
+    top: 0;
+    left: 25%;
+} 
+.animated-chart .fragment .x-axis,
+.animated-chart .fragment .x-legend {
+    visibility: hidden;
+}
+.animated-chart .fragment-title {
+    background-color: white;
+    position: absolute;
+    font-size: 16pt;
+    top: 1em;
+    right: -3em;
+    min-width: 10em;
+    text-align: right;
+}
+
+.animated-chart .seq-1 .column {
+    background-color: orange;
+}
+.animated-chart .seq-2 .column {
+    background-color: orange;
+}
+.animated-chart .seq-3 .column {
+    background-color: yellow;
+}
+.animated-chart .seq-4 .column {
+    background-color: turquoise;
+}
+.animated-chart .seq-5 .column {
+    background-color: lightblue;
+}
+.animated-chart .seq-6 .column {
+    background-color: blue;
+}
+.animated-chart .seq-7 .column {
+    background-color: violet;
+}
+.animated-chart .seq-8 .column {
+    background-color: purple;
+}
+.animated-chart .seq-9 .column {
+    background-color: #90cc00;
+    opacity: .8;
+}
+.animated-chart .column {
+    opacity: .5;
+}
+.animated-chart .col-opaque .column {
+    opacity: 1;
+}
+

@@ -1,0 +1,555 @@
+<!DOCTYPE HTML>
+<!-- <html lang="en-US"> -->
+<html lang="en-US" class="fade">
+<!-- 
+   ^ a class of "fade" makes slides fade smoothly into one another
+ -->
+<!-- <html lang="en-US" class="nonumbers"> -->
+<!-- 
+  If you want no numbers on the slides add a "nonumbers" class 
+  to the HTML element.
+  Adding a class of "fade" will make slides fade into another. 
+-->
+<head>
+  <meta charset="UTF-8">
+  <title>HTTP in Practice: From the Browser</title>
+<!-- 
+  If you upload your slides to the web, ensure that you have 
+  a good title - this shows up in search results and social
+  media links
+ -->
+  <meta name="viewport" content="width=device-width, user-scalable=yes">
+  <link rel="stylesheet" href="themes/mozilla/styles/style.css">
+</head>
+<body class="list">
+  <header class="caption">
+    <h1>HTTP in Practice: From the Browser</h1>
+    <p class="footer">
+      Patrick McManus, 
+      <a href="https://twitter.com/">@mcmanusducksong</a> or 
+      <a href="mailto:pmcmanus@mozilla.com">pmcmanus@mozilla.com</a>
+    </p>
+  </header>
+  <aside class="talkdescription">
+    <p>Click any slide to go into presentation mode. Then use keys to navigate. <button onclick="goFullScreen()">Go fullscreen</button></p>
+    <p class="abstract">
+      <strong>Abstract: </strong>
+ehhc -tee -tee- what? Just load the damn page already.
+    </p>
+  </aside>
+
+<!-- 
+    Simply copy the whole block for each slide you want.
+  Special slides get extra classes. Each slide needs an ID 
+  to allow for bookmarking and target jumping.
+-->
+
+  <div id="cover" class="slide"><div>
+    <section>
+      <header>
+        <h2>HTTP in Practice: From the Browser</h2>
+      </header>
+      <img src="img/waterfall1.png"
+           class="middle shadow" height="400">
+      <small class="byline">
+	Patrick McManus, HTTP Workshop 2015
+      </small>
+      <footer class="notes">
+      </footer>
+    </section>
+  </div></div>
+
+  <div id="overview" class="slide"><div>
+    <section>
+      <header>
+        <h2>SNEAK PREVIEW</h2>
+      </header>
+ 
+ <ul>
+<li>First, Be <strong>Safe</strong> To Protect Your Human and the Internet.
+<li>Second, Be <strong>Robust</strong> To Interop In the Face of Reality.
+<li>Third, Be <strong>Fast</strong> to Enable Delightful Things.
+</ul>
+<P>
+<div class="mumble2">
+Finale: Browser Telemetry Nugget Trivia
+</div>
+ <P>
+     <footer class="notes">
+      </footer> 
+    </section>
+  </div></div>
+
+  <div id="mission1" class="slide oneline"><div>
+    <section>
+      <header>
+        <h2><strong>Mission 1</strong>: Stay Safe</h2>
+      </header>
+      <footer class="notes">
+      </footer>
+    </section>
+  </div></div>  
+
+  <div id="securityCloud" class="slide"><div>
+    <section>
+      <header>
+        <h2><strong>Oh dear..</strong></h2>
+      </header>
+      <img src="img/securitycloud.png"
+           class="middle">
+      <footer class="notes">
+
+      </footer>
+    </section>
+  </div></div>
+
+  <div id="mission2" class="slide oneline"><div>
+    <section>
+      <header>
+        <h2><strong>Mission 2</strong>: Be Robust</h2>
+      </header>
+      <footer class="notes">
+      </footer>
+    </section>
+  </div></div>  
+
+   <div id="codedemo" class="slide"><div>
+    <section>
+      <header>
+        <h2><strong>Postel's Shadow</strong></h2>
+      </header>
+      <p>It turns out the Internet is not worthy of Jon Postel's
+      legacy. At best, half right.</p>
+        <pre>
+        <code>// wrap the multiplexed input stream with a buffered input stream, so</code>
+        <code>// that we write data in the largest chunks possible.  this is actually</code>
+        <code>// necessary to workaround some common server bugs (see bug 137155).</code>
+        <code>rv = NS_NewBufferedInputStream(getter_AddRefs(mRequestStream), multi,</code>
+        <code>                               nsIOService::gDefaultSegmentSize);</code>
+        </pre>
+      <p><strong>Please</strong> keep up the communication on H2 interop issues and
+      hard fail whenever possible. Consider it herd immunity.</P>
+
+      <footer class="notes">
+      </footer>
+    </section>
+  </div></div>
+
+
+ <div id="bugs" class="slide"><div>
+    <section>
+      <header>
+        <h2><strong>Bugs Just About Delimiters!</strong></h2>
+      </header>
+      <ul>
+<li>CRLF, or LF</li>
+<li>Missing zero-chunk</li>
+<li>204/304 with body</li>
+<li>Unterminated gzip encoding</li>
+<li>Content Length off by trailing CR(LF)</li>
+<li>Redirects with Content Length of Target (seriously)</li>
+<li>Header Line Continuation
+</ul>
+      <footer class="notes">
+      </footer>
+    </section>
+  </div></div>
+
+ <div id="bugs2" class="slide"><div>
+    <section>
+      <header>
+        <h2><Strong>Cannot Deploy</strong></h2>
+      </header>
+<p>
+      <blockquote>
+        <p>The end-to-end principle is 
+important, and cryptography is 
+its strongest guardian.</p>
+        <p class="byline">AGL</p>
+      </blockquote>
+
+      <footer class="notes">
+      </footer>
+    </section>
+  </div></div>
+
+  <div id="bugs3" class="slide"><div>
+    <section>
+      <header>
+        <h2><strong>Connection Management</strong></h2>
+      </header>
+      <p>Too large of a portion of the actual work of a browser HTTP engine
+      involves connection scheduling in an implicit negotiation with
+      path and peer.<p>
+<ul class="lots">
+<li>NAT Timeouts
+<li>Server Timeouts
+<li>Client Timeouts
+<li>6? Per Origin
+<li>Pooling
+<li>Sharding
+<li>SSE
+<li>Hanging Get
+<li>Anonymous
+<li>TCP KA
+<li>Congestion
+<li>Power
+<li>Late Binding
+<li>Mobility
+<li>VPN
+</ul>
+      <footer class="notes">
+      </footer> 
+    </section>
+  </div></div>
+
+  <div id="mission3" class="slide oneline"><div>
+    <section>
+      <header>
+        <h2><strong>Mission 3</strong>: Be Fast</h2>
+      </header>
+      <footer class="notes">
+      </footer>
+    </section>
+  </div></div>  
+
+  <div id="fast1" class="slide"><div>
+    <section>
+      <header>
+        <h2><strong>Priority Matters</strong></h2>
+      </header>
+      <p>Total Page Load Time is a lousy metric.
+<p>Focus on latency to usable. SpeedIndex is great.
+<p>Inlining defeats priority. Pipelines too.
+<p>Resources have relationships that browser can understand that can
+  not be fully expressed in HTTP, though H2 is better at this.
+      <footer class="notes">
+      </footer>
+    </section>
+  </div></div>
+
+  <div id="fast2" class="slide"><div>
+    <section>
+      <header>
+        <h2><strong>Parallelism Matters</strong></h2>
+      </header>
+      <p>Parallelism mitigates queueing delays. H2 ftw.
+	<p>Cross origin parallelism is wild west
+  <p>Severe tension exists around TCP's fairness even though TCP is
+  not fair. Relatedly - the migration of 6-in-h1 to 1-in-h2
+	    <p>TCP termination is easier than ever before
+      <footer class="notes">
+      </footer>
+    </section>
+  </div></div>
+
+  <div id="fast3" class="slide"><div>
+    <section>
+      <header>
+        <h2><strong>Congestion Control Matters</strong></h2>
+      </header>
+<p><strong>Senders are too conservative</strong> - Is slow start
+  really Congestion Control? A lot of my data is in slow start.
+<p><strong>Senders are too aggressive</strong> - Even so, we can melt down anyhow via parallelism. Witnessed 120 shards at IW
+  > 10 and the induced 90% loss.
+<p><strong>Senders are blind</strong> - bufferbloat and RT sadness ensue.
+      <footer class="notes">
+      </footer>
+    </section>
+  </div></div>
+
+
+  <div id="fast4" class="slide"><div>
+    <section>
+      <header>
+        <h2><strong>Congestion Control - A New Hope</strong></h2>
+      </header>
+<p>Pacing handshakes and HTTP requests absolutely do help at
+  application layer.
+<p>At transport layer, I'm ready for something better, deployable, portable, and secure
+  than TCP.
+      <footer class="notes">
+      </footer>
+    </section>
+  </div></div>
+
+  <div id="datanugget" class="slide"><div>
+    <section>
+      <header>
+        <h2>Data "Nuggets" Trivia</h2>
+      </header>
+      <figure class="middle shadow frame">
+      <img src="img/nugget.jpg">
+      </figure>     
+      <small class="credits">
+By Ludovic Bertron from New York City
+      </small>
+      <footer class="notes">
+      </footer>
+    </section>
+  </div></div>
+
+  <div id="q1q" class="slide"><div>
+    <section>
+      <header>
+        <h2>Basic Characterization Info</h2>
+      </header>
+      <ol>
+<li>Median Page Size: ???
+</li><li> Median Page Objects: ???
+</li><li> Percent of HTTPS:// Pages (Navigations): ???
+</li><li> Percent of HTTPS:// Transactions: ???
+</li>
+</p>
+(This is where you guess the answer.)
+      <footer class="notes">
+      </footer>
+    </section>
+  </div></div>
+
+  <div id="q1a" class="slide"><div>
+    <section>
+      <header>
+        <h2>Basic Characterization Info</h2>
+      </header>
+      <ol>
+<li>Median Page Size: 1.7MB
+</li><li> Median Page Objects: 80
+</li><li> Percent of HTTPS:// Pages (Navigations): 36
+</li><li> Percent of HTTPS:// Transactions: 60
+</li>
+</p>
+(This is where I provide answer.)
+      <footer class="notes">
+      </footer>
+    </section>
+  </div></div>
+
+  <div id="q2q" class="slide"><div>
+    <section>
+      <header>
+        <h2>Proxies and Caches</h2>
+      </header>
+      <ol>
+<li>
+Browser Cache Hit Rate: ???
+</li><li> Percent of 304 Responses: ???
+</li><li> Percent of Failed Validations: ???
+</li><li> Percent of Explicit Proxy Use: ???
+</li>
+</p>
+      <footer class="notes">
+      </footer>
+    </section>
+  </div></div>
+
+  <div id="q2a" class="slide"><div>
+    <section>
+      <header>
+        <h2>Proxies and Caches</h2>
+      </header>
+      <ol>
+<li> Browser Cache Hit Rate: 31%
+</li><li> Percent of 304 Responses: 4%
+</li><li> Percent of Failed Validations: 4%
+</li><li>Percent of Explicit Proxy Use: The floor is 1.5% HTTP plus .02% SOCKS. But
+  really unkown - both transparent and enterprise/privacy telemetry
+  skew come into play.
+</li>
+</p>
+      <footer class="notes">
+      </footer>
+    </section>
+  </div></div>
+
+  <div id="q3q" class="slide"><div>
+    <section>
+      <header>
+        <h2>HTTP Response Version</h2>
+      </header>
+      <ol>
+<li>Percent H2: ???
+</li><li> Percent SPDY: ???
+</li><li> Percent HTTP/1.1: ???
+</li><li> Percent HTTP/1.0: ???
+</li><li> Percent HTTP/0.9: ???
+</li>
+</p>
+      <footer class="notes">
+      </footer>
+    </section>
+  </div></div>
+
+  <div id="q3a" class="slide"><div>
+    <section>
+      <header>
+        <h2>HTTP Response Version</h2>
+      </header>
+      <ol>
+<li>Percent H2: 9%
+</li><li> Percent SPDY: 3%
+</li><li> Percent HTTP/1.1: 87%
+</li><li> Percent HTTP/1.0: 1%
+</li><li> Percent HTTP/0.9: .001%
+</li>
+</p>
+      <footer class="notes">
+      </footer>
+    </section>
+  </div></div>
+
+  <div id="q4q" class="slide"><div>
+    <section>
+      <header>
+        <h2>TCP Handshake (standin for RTT)</h2>
+      </header>
+      <ol>
+<li>25th Percentile: ???
+</li><li> Median: ???
+</li><li> 75th Percentile: ???
+</li>
+</p>
+      <footer class="notes">
+      </footer>
+    </section>
+  </div></div>
+
+  <div id="q4a" class="slide"><div>
+    <section>
+      <header>
+        <h2>TCP Handshake (standin for RTT)</h2>
+      </header>
+      <ol>
+<li>25th Percentile: 22ms (54ms for mobile)
+</li><li> Median: 53ms (107ms for mobile)
+</li><li> 75th Percentile: 117ms (213ms for mobile)
+</li>
+</p>
+      <footer class="notes">
+      </footer>
+    </section>
+  </div></div>
+
+  <div id="q5q" class="slide"><div>
+    <section>
+      <header>
+        <h2>Connection Reusue</h2>
+      </header>
+      <ol>
+<li>Percent HTTP/1 Connections that serve 1 transaction: ???
+</li><li>Percent H2/ SPDY Connections that serve 1 transaction: ???
+</li>
+</p>
+      <footer class="notes">
+      </footer>
+    </section>
+  </div></div>
+
+  <div id="q5a" class="slide"><div>
+    <section>
+      <header>
+        <h2>Connection Reusue</h2>
+      </header>
+      <ol>
+<li>Percent HTTP/1 Connections that serve 1 transaction:  <strong>73%</strong>
+</li><li>Percent H2/ SPDY Connections that serve 1 transaction: 7%
+</li>
+</p>
+RST_STREAM independent of TCP is the most under appreciated feature of H2.
+</p>
+It does get better from the transaction POV. Average H1
+transaction is on a conneciton w/ >=10 other transactions. 75% of
+transactions share their connection overhead w/ at least one other
+transaction. For SPDY/H2 it is 20 or more and 99% see some sharing.
+      <footer class="notes">
+      </footer>
+    </section>
+  </div></div>
+
+  <div id="q6q" class="slide"><div>
+    <section>
+      <header>
+        <h2>HTTP/1 Queue Delay (Desktop)</h2>
+      </header>
+      <ol>
+<li>5th Percentile: ???
+</li><li> 25th Percentile: ???
+</li><li> Median: ???
+</li><li> 75th Percentile: ???
+</li><li> 95th Percentile: ???
+</li>
+</p>
+This is the amount of time a request spends waiting blocked on HTTP
+parallelism rules (e.g. the classic 6 connection per origin rule). It
+does not count time making progress towards dns, tcp setup, tls, etc..
+      <footer class="notes">
+      </footer>
+    </section>
+  </div></div>
+
+  <div id="q6a" class="slide"><div>
+    <section>
+      <header>
+        <h2>HTTP/1 Queue Delay</h2>
+      </header>
+      <ol>
+<li>5th Percentile: 1ms 
+</li><li> 25th Percentile: 1ms
+</li><li> Median: 21ms
+</li><li> 75th Percentile: 221ms 
+</li><li> 95th Percentile: 3390ms (DANG!)
+</li>
+</p>
+Now, how about SPDY/H2?
+      <footer class="notes">
+      </footer>
+    </section>
+  </div></div>
+
+
+  <div id="q6a3" class="slide"><div>
+    <section>
+      <header>
+        <h2>Spdy/H2 Queue Delay</h2>
+      </header>
+      <ol>
+<li>5th Percentile: 1ms 
+</li><li> 25th Percentile: 1ms
+</li><li> Median: 1ms
+</li><li> 75th Percentile: 3ms 
+</li><li> 95th Percentile: 17ms (SWEET - w/ Server
+	  Based Priority)
+</li>
+</p>
+      <footer class="notes">
+      </footer>
+    </section>
+  </div></div>
+
+  <div id="thanks" class="slide"><div>
+    <section>
+      <header>
+        <h2>Thanks - What do you see?</h2>
+      </header>
+      <img src="pictures/mozillaoverview/redpanda.jpg" class="middle"
+	   alt="Red panda (Firefox)">
+      <small class="credits">
+        <a href="http://www.flickr.com/photos/yortw/5798336827/">Photo by Yortw</a>
+      </small>
+
+    <footer class="notes">
+    </footer>
+
+    </section>
+  </div></div>
+
+
+  <!--
+    To hide progress bar from entire presentation
+    just remove “progress” element.
+    -->
+  <div class="progress"><div></div></div>
+  <script src="scripts/script.js"></script>
+  <!-- Copyright © 2010–2012 Vadim Makeev — pepelsbey.net -->
+</body>
+</html>

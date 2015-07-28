@@ -1,0 +1,779 @@
+<!doctype html>
+<html lang="en">
+    
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+            
+        <title>mod_h2 - a HTTP/2 implementation</title>
+        
+        <meta name="description" content="HTTP/2 Implementation Experiences">
+        <meta name="author" content="Stefan Eissing">
+                
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
+                    
+        <link rel="stylesheet" href="css/reveal.css">
+        <link rel="stylesheet" href="css/theme/white.css" id="theme">
+        <link rel="stylesheet" href="lib/css/gb.css">
+                
+        <!-- Code syntax highlighting -->
+        <link rel="stylesheet" href="lib/css/zenburn.css">
+            
+        <!-- Printing and PDF exports -->
+        <script>
+            var link = document.createElement( 'link' );
+            link.rel = 'stylesheet';
+            link.type = 'text/css';
+            link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+            document.getElementsByTagName( 'head' )[0].appendChild( link );
+        </script>
+        
+        <!--[if lt IE 9]>
+        <script src="lib/js/html5shiv.js"></script>
+        <![endif]-->
+    </head>
+    
+    <body>
+        <div class="backlogo"></div>
+        
+        <div class="reveal">
+            
+            <!-- Any section element inside of this container is displayed as a slide -->
+            <div class="slides">
+                <section>
+                    <h1>mod_h2</h1>
+                    <h3>Implementing HTTP/2</h3>
+                    <h3>for Apache HTTPD</h3>
+                    <p class="small">
+                    <a href="https://www.greenbytes.de">Stefan Eissing, greenbytes GmbH</a> / <a href="http://twitter.com/icing">@icing</a>
+                    </p>
+                </section>
+                
+                <section>
+                    <h2>Topics</h2>
+                    <p>
+                    <ul>
+                        <li>Motivations</li>
+                        <li>HTTP/2? Ez!</li>
+                        <li>Challenges</li>
+                        <li>Observations</li>
+                        <li>Compliance</li>
+                    </ul>
+                    </p>
+                </section>
+                <section>
+                    <h2>Motivations</h2>
+                    <p>
+                    </p>
+                    <ul>
+                        <li>GSMA: h2c as migration choice</li>
+                        <li>GSMA: cache/accelerators common</li>
+                        <li>greenbytes: Cool!</li>
+                        <li>Apache: Take that, nginx!</li>
+                    </ul>
+                    <p class="small">The African villages are in South America!</p>
+                </section>
+                <section>
+                    <section>
+                        <h2>Ez!</h2>
+                        <p></p>
+                        <ul>
+                            <li>Look at <code>mod_spdy</code></li>
+                            <li>Take <code>nghttp2</code>, test with <code>curl</code></li>
+                            <li>Optimize a bit...</li>
+                        </ul>
+                        <p class="small">Jan - July 2015</p>
+                    </section>
+                    <section>
+                        <h2>mod_spdy</h2>
+                        <ul>
+                            <li>C/C++ hybrid SPDY engine</li>
+                            <li>Apache httpd 2.2 pluggable</li>
+                            <li>Solved many plumbing details</li>
+                        </ul>
+                        <p class="small">Pioneered by Matthew Steele and Bryan McQuade!</p>
+                    </section>
+                    <section>
+                        <h2>nghttp2 + curl</h2>
+                        <ul>
+                            <li><em>The</em> Reference Implementations</li>
+                            <li>C, high Quality</li>
+                            <li>Well Documented</li>
+                            <li>Excellent Support</li>
+                        </ul>
+                        <p class="small">Many Thanks to Tatsuhiro Tsujikawa and Daniel Stenberg!</p>
+                    </section>
+                    <section>
+                        <h2>mod_h2</h2>
+                        <ul>
+                            <li>Completely C, written from scratch</li>
+                            <li>Dependency: nghttp2 only</li>
+                            <li><a href="https://github.com/icing/mod_h2">github.com/icing/mod_h2</a></li>
+                            <li>Part of Apache now</li>
+                        </ul>
+                        <p class="small">Donated by GSMA and greenbytes in July</p>
+                    </section>
+                    <section>
+                        <h2>Optimize a bit</h2>
+                        <p>Evolution of <code>mod_h2</code> performance.</p>
+                        <div class="animated-chart">
+                            <div class="chart">
+                                <div class="y-legend">
+                                    <div class="y-axis">~50k</div>
+                                    <div>requests / sec</div>
+                                </div>
+                                <table class="col-chart">
+                                    <div class="fragment-title">March</div>
+                                    <tbody>
+                                        <tr>
+                                            <td><div class="chart-area"><div class="column ref-val" style="top: 51%;"></div><div class="column ref-val2" style="top: 51%;"></div></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 67%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 57%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 51%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 43%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 45%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 48%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 46%;"/></div></td>
+                                        </tr>
+                                        <tr class="x-axis">
+                                            <td></td><td>1</td><td>2</td><td>5</td><td>10</td><td>20</td><td>40</td><td>100</td>
+                                        </tr>
+                                        <tr class="x-legend">
+                                            <td>http/1</td><td colspan="7"># streams</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="chart fragment seq-2">
+                                <div class="fragment-title">April</div>
+                                <table class="col-chart">
+                                    <tbody>
+                                        <tr>
+                                            <td><div class="chart-area"></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 63%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 56%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 46%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 46%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 45%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 45%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 45%;"/></div></td>
+                                        </tr>
+                                        <tr class="x-axis">
+                                            <td></td><td>1</td><td>2</td><td>5</td><td>10</td><td>20</td><td>40</td><td>100</td>
+                                        </tr>
+                                        <tr class="x-legend">
+                                            <td>http/1</td><td colspan="7">mod_h2</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="chart fragment seq-3">
+                                <div class="fragment-title">April</div>
+                                <table class="col-chart">
+                                    <tbody>
+                                        <tr>
+                                            <td><div class="chart-area"></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 60%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 53%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 45%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 40%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 42%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 42%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 40%;"/></div></td>
+                                        </tr>
+                                        <tr class="x-axis">
+                                            <td></td><td>1</td><td>2</td><td>5</td><td>10</td><td>20</td><td>40</td><td>100</td>
+                                        </tr>
+                                        <tr class="x-legend">
+                                            <td>http/1</td><td colspan="7">mod_h2</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="chart fragment seq-4">
+                                <div class="fragment-title">April</div>
+                                <table class="col-chart">
+                                    <tbody>
+                                        <tr>
+                                            <td><div class="chart-area"></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 59%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 52%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 44%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 39%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 41%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 37%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 40%;"/></div></td>
+                                        </tr>
+                                        <tr class="x-axis">
+                                            <td></td><td>1</td><td>2</td><td>5</td><td>10</td><td>20</td><td>40</td><td>100</td>
+                                        </tr>
+                                        <tr class="x-legend">
+                                            <td>http/1</td><td colspan="7">mod_h2</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="chart fragment seq-5">
+                                <div class="fragment-title">April</div>
+                                <table class="col-chart">
+                                    <tbody>
+                                        <tr>
+                                            <td><div class="chart-area"></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 61%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 52%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 43%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 38%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 36%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 36%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 40%;"/></div></td>
+                                        </tr>
+                                        <tr class="x-axis">
+                                            <td></td><td>1</td><td>2</td><td>5</td><td>10</td><td>20</td><td>40</td><td>100</td>
+                                        </tr>
+                                        <tr class="x-legend">
+                                            <td>http/1</td><td colspan="7">mod_h2</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="chart fragment seq-6">
+                                <div class="fragment-title">May</div>
+                                <table class="col-chart">
+                                    <tbody>
+                                        <tr>
+                                            <td><div class="chart-area"></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 59%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 52%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 41%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 37%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 31%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 36%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 38%;"/></div></td>
+                                        </tr>
+                                        <tr class="x-axis">
+                                            <td></td><td>1</td><td>2</td><td>5</td><td>10</td><td>20</td><td>40</td><td>100</td>
+                                        </tr>
+                                        <tr class="x-legend">
+                                            <td>http/1</td><td colspan="7">mod_h2</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="chart fragment seq-7">
+                                <div class="fragment-title">May</div>
+                                <table class="col-chart">
+                                    <tbody>
+                                        <tr>
+                                            <td><div class="chart-area"></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 58%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 49%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 36%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 28%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 25%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 33%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 36%;"/></div></td>
+                                        </tr>
+                                        <tr class="x-axis">
+                                            <td></td><td>1</td><td>2</td><td>5</td><td>10</td><td>20</td><td>40</td><td>100</td>
+                                        </tr>
+                                        <tr class="x-legend">
+                                            <td>http/1</td><td colspan="7">mod_h2</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="chart fragment seq-8">
+                                <div class="fragment-title">June</div>
+                                <table class="col-chart">
+                                    <tbody>
+                                        <tr>
+                                            <td><div class="chart-area"></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 45%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 31%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 17%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 4%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 20%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 18%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 25%;"/></div></td>
+                                        </tr>
+                                        <tr class="x-axis">
+                                            <td></td><td>1</td><td>2</td><td>5</td><td>10</td><td>20</td><td>40</td><td>100</td>
+                                        </tr>
+                                        <tr class="x-legend">
+                                            <td>http/1</td><td colspan="7">mod_h2</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="chart fragment seq-9">
+                                <div class="fragment-title">July</div>
+                                <table class="col-chart">
+                                    <tbody>
+                                        <tr>
+                                            <td><div class="chart-area"></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 45%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 31%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 15%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 8%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 3%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 0%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 9%;"/></div></td>
+                                        </tr>
+                                        <tr class="x-axis">
+                                            <td></td><td>1</td><td>2</td><td>5</td><td>10</td><td>20</td><td>40</td><td>100</td>
+                                        </tr>
+                                        <tr class="x-legend">
+                                            <td>http/1</td><td colspan="7">mod_h2</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </section>
+                </section>
+                
+                <section>
+                    <section>
+                        <h2>Challenges</h2>
+                        <p>
+                        <ul>
+                            <li>Processing Models</li>
+                            <li>Resource Management</li>
+                            <li>Parameter Variations</li>
+                        </ul>
+                        </p>
+                    </section>
+                    
+                    <section>
+                        <h2>Processing Models</h2>
+                        <p>
+                        Processing a h2 connection is vastly different in terms of (Connection/Request/Thread).
+                        </p>
+                        <ul>
+                            <li><code>1-1-1</code> (http/1)</li>
+                            <li><code>1-n-m</code> (h2)</li>
+                        </ul>
+                        <p class="small">In h2, 1 connection has <code>n</code> ongoing request, worked on by <code>m</code> threads.</p>
+                        <p>Existing runtimes are optimized for 1-1-1</p>
+                    </section>
+                    
+                    <section>
+                        <h2>Resource Management</h2>
+                        <p>
+                        Not new, but different.
+                        </p>
+                        <ul>
+                            <li>File Handles</li>
+                            <li>Threads, Locking</li>
+                            <li>Scheduling</li>
+                        </ul>
+                        <p class="fragment small">Server manage resources/connection. h2 adds two order of magnitude.</p>
+                        <p class="fragment small">Keeping file handles open reduces buffer copies.</p>
+                        <p class="fragment small">Connection fairness vs. priority handling.</p>
+                    </section>
+                    
+                    <section>
+                        <h2>Variations</h2>
+                        <p>
+                        Many parameters in play, what to optimize for?</p>
+                        <div class="animated-chart">
+                            <div class="chart">
+                                <div class="legend" style="font-size: 14pt; max-width: 8em;">
+                                    Requesting 1k, 10k, 10M resource mix on 8 connections+threads, 100 max streams.<br>
+                                    <sup>*</sup>64k just for testing, TLS layer does max 16k fragments itself.
+                                </div>
+                                <div class="y-legend" style="padding-top: 1.5em; margin-top: -.5em;">
+                                    <div class="y-axis">~1200</div>
+                                    <div>MB/sec</div>
+                                </div>
+                                <table class="col-chart seq-5 col-opaque" style="min-width: 12em;">
+                                    <tbody>
+                                        <tr>
+                                            <td><div class="chart-area"><div class="column" style="top: 31%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 20%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 14%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 7%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 7%;"/></div></td>
+                                        </tr>
+                                        <tr class="x-axis">
+                                            <td>2k</td><td>4k</td><td>8k</td><td>16k</td><td>64k<sup>*</sup></td>
+                                        </tr>
+                                        <tr class="x-legend">
+                                            <td colspan="5">Write Sizes</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <p class="small">
+                        max streams, window sizes, priorities, 
+                        processing modules, worker capacities, buffer sizes...
+                        </p>
+                    </section>
+                </section>
+                
+                <section>
+                    <section>
+                        <h2>Observations</h2>
+                        <ul>
+                            <li>A Wave</li>
+                            <li>Miracle Preforker</li>
+                            <li>More Force</li>
+                        </ul>
+                        <p class="small">Ultimately: Cycles/Request</p>
+                    </section>
+                    
+                    <section>
+                        <h2>A Wave</h2>
+                        <p>
+                        Requesting different resource sizes.
+                        </p>
+                        <p class="small">1 Gbps ethernet, Core i5 2010 server.</p>
+                        <div class="animated-chart">
+                            <div class="chart">
+                                <div class="y-legend" style="padding-top: 1.2em;">
+                                    <div class="y-axis">~18k<div class="right">8k</div></div>
+                                    <div>requests / sec</div>
+                                </div>
+                                <div class="fragment-title">10k resource</div>
+                                <table class="col-chart">
+                                    <tbody>
+                                        <tr>
+                                            <td><div class="chart-area"><div class="column" style="top: 87%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 81%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 78%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 78%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 78%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 77%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 77%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 77%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 77%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 77%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 77%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 77%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 79%;"/></div></td>
+                                        </tr>
+                                        <tr class="x-axis">
+                                            <td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td><td>7</td><td>8</td><td>9</td><td>10</td><td>20</td><td>40</td><td>100</td>
+                                        </tr>
+                                        <tr class="x-legend">
+                                            <td colspan="7"># streams</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="chart fragment seq-1">
+                                <div class="fragment-title">7.5k resource</div>
+                                <table class="col-chart">
+                                    <tbody>
+                                        <tr>
+                                            <td><div class="chart-area"><div class="column" style="top: 81%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 67%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 64%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 62%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 61%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 60%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 59%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 59%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 59%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 57%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 56%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 55%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 54%;"/></div></td>
+                                        </tr>
+                                        <tr class="x-axis">
+                                            <td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td><td>7</td><td>8</td><td>9</td><td>10</td><td>20</td><td>40</td><td>100</td>
+                                        </tr>
+                                        <tr class="x-legend">
+                                            <td colspan="7"># streams</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="chart fragment seq-7">
+                                <div class="fragment-title">4k resource</div>
+                                <table class="col-chart">
+                                    <tbody>
+                                        <tr>
+                                            <td><div class="chart-area"><div class="column" style="top: 73%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 55%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 41%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 43%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 43%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 41%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 41%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 41%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 40%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 40%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 37%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 35%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 32%;"/></div></td>
+                                        </tr>
+                                        <tr class="x-axis">
+                                            <td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td><td>7</td><td>8</td><td>9</td><td>10</td><td>20</td><td>40</td><td>100</td>
+                                        </tr>
+                                        <tr class="x-legend">
+                                            <td colspan="7"># streams</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="chart fragment seq-8">
+                                <div class="fragment-title">2k resource</div>
+                                <table class="col-chart">
+                                    <tbody>
+                                        <tr>
+                                            <td><div class="chart-area"><div class="column" style="top: 66%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 44%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 25%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 13%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 15%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 16%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 19%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 24%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 26%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 27%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 23%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 20%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 16%;"/></div></td>
+                                        </tr>
+                                        <tr class="x-axis">
+                                            <td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td><td>7</td><td>8</td><td>9</td><td>10</td><td>20</td><td>40</td><td>100</td>
+                                        </tr>
+                                        <tr class="x-legend">
+                                            <td colspan="7"># streams</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="chart fragment seq-9">
+                                <div class="fragment-title">1k resource</div>
+                                <table class="col-chart">
+                                    <tbody>
+                                        <tr>
+                                            <td><div class="chart-area"><div class="column" style="top: 61%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 39%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 22%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 10%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 7%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 13%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 17%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 22%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 21%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 23%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 20%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 18%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 14%;"/></div></td>
+                                        </tr>
+                                        <tr class="x-axis">
+                                            <td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td><td>7</td><td>8</td><td>9</td><td>10</td><td>20</td><td>40</td><td>100</td>
+                                        </tr>
+                                        <tr class="x-legend">
+                                            <td colspan="7"># streams</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </section>
+                    
+                    <section>
+                        <h2>Miracle Preforker</h2>
+                        <p>
+                        Best: mpm_prefork + 1 worker
+                        </p>
+                        <div class="animated-chart">
+                            <div class="chart">
+                                <div class="legend">
+                                    <ul>
+                                        <li class="seq-2">mpm_prefork</li>
+                                        <li class="seq-9">mpm_worker</li>
+                                    </ul>
+                                </div>
+                                <div class="y-legend">
+                                    <div class="y-axis">~60k</div>
+                                    <div>requests / sec</div>
+                                </div>
+                                <table class="col-chart seq-2 col-opaque">
+                                    <tbody>
+                                        <tr>
+                                            <td><div class="chart-area"><div class="column ref-val" style="top: 56%;"></div></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 47%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 34%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 16%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 10%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 10%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 5%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 0%;"/></div></td>
+                                        </tr>
+                                        <tr class="x-axis">
+                                            <td></td><td>1</td><td>2</td><td>5</td><td>10</td><td>20</td><td>40</td><td>100</td>
+                                        </tr>
+                                        <tr class="x-legend">
+                                            <td>http/1</td><td colspan="7"># streams</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="chart seq-9 col-opaque">
+                                <table class="col-chart">
+                                    <tbody>
+                                        <tr>
+                                            <td><div class="chart-area"></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 52%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 40%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 26%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 20%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 16%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 13%;"/></div></td>
+                                            <td><div class="chart-area"><div class="column" style="top: 21%;"/></div></td>
+                                        </tr>
+                                        <tr class="x-axis">
+                                            <td></td><td>1</td><td>2</td><td>5</td><td>10</td><td>20</td><td>40</td><td>100</td>
+                                        </tr>
+                                        <tr class="x-legend">
+                                            <td>http/1</td><td colspan="7"># streams</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <p class="small">But best in what exactly?</p>
+                    </section>
+                    
+                    <section>
+                        <h2>More Force</h2>
+                        <p>
+                        Transfer of 10 MB resources
+                        </p>
+                        <div class="animated-chart">
+                        <div class="chart">
+                            <div class="y-legend" style="padding-top: 1.5em; margin-top: -.5em;">
+                                <div class="y-axis">~5</div>
+                                <div>GB/sec</div>
+                            </div>
+                            <table class="col-chart seq-9 col-opaque" style="min-width: 12em;">
+                                <tbody>
+                                    <tr>
+                                        <td><div class="chart-area"><div class="column ref-val" style="top: 0%;"/></div></td>
+                                        <td><div class="chart-area"><div class="column" style="top: 55%;"/></div></td>
+                                        <td><div class="chart-area"><div class="column ref-val" style="top: 66%;"/></div></td>
+                                        <td><div class="chart-area"><div class="column" style="top: 72%;"/></div></td>
+                                        <td><div class="chart-area"><div class="column" style="top: 76%;"/></div></td>
+                                    </tr>
+                                    <tr class="x-axis">
+                                        <td>http</td><td>h2c</td><td>https</td><td>h2+prefork</td><td>h2+worker</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        </div>
+                        <p class="small">Measured on localhost: buffer copies, encryption.</p>
+                    </section>
+                </section>
+                
+                
+                <section>
+                    <section>
+                        <h2>Compliance</h2>
+                        <ul>
+                            <li>Missing</li>
+                            <li>Configure</li>
+                            <li>Clients</li>
+                            <li>Futures</li>
+                        </ul>
+                        <p class="small">&quot;You're off the edge of the map, mate. Here there be monsters.&quot;</p>
+                    </section>
+                    
+                    <section>
+                        <h2>Missing</h2>
+                        <ul>
+                            <li>Server Push (Link Header?)</li>
+                            <li>Priority Worker Assignment</li>
+                            <li>OpSec http vs. https safety</li>
+                        </ul>
+                        <p class="small">How do YOU do it?</p>
+                    </section>
+                    
+                    <section>
+                        <h2>Configure</h2>
+                        <p>RFC 7540 compliance configured, not coded.</p>
+                        <ul>
+                            <li>Upgrades on <em>any</em> HTTP/1 request</li>
+                            <li><code>Direct</code> on any connection start</li>
+                            <li>Ciphers unchecked when negotiating</li>
+                        </ul>
+                        <p class="fragment small">SSLCipherSuite ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!3DES:!MD5:!PSK</p>
+                    </section>
+                    
+                    <section>
+                        <h2>Clients</h2>
+                        <ul>
+                            <li>Tests with curl, Protocol::HTTP2, nghttp,</li>
+                            <li>Firefox, Chrome, Edge, iOS9</li>
+                            <li>All working well, slight differences</li>
+                            <li>Ciphers, priorities and h2c support</li>
+                            <li>UX of "insufficient security" sucks!</li>
+                        </ul>
+                        <p class="small">New game: 421 ping pong!</p>
+                    </section>
+
+                    <section>
+                        <h2>Futures</h2>
+                        <ul>
+                            <li>Release in 2.4.x</li>
+                            <li>Tighter Integration, less Cycles</li>
+                            <li>Reshaping a HTTP/2 library</li>
+                            <li>Timely Standard Extensions</li>
+                        </ul>
+                        <p class="small">Sponsoring Needed!</p>
+                    </section>
+
+                </section>
+                
+                <section>
+                    <p><code>mod_h2</code></p>
+                    <ul class="unbullet">
+                        <li>until released in <code>httpd/2.4.x</code></li>
+                        <li>grab it at <a href="https://github.com/icing/mod_h2">github.com/icing/mod_h2</a></li>
+                    </ul>
+                    <p></p>
+                    <h2>Thanks!</h2>
+                </section>
+            </div>
+            
+        </div>
+        
+        <script src="lib/js/head.min.js"></script>
+        <script src="js/reveal.js"></script>
+        
+        <script>
+            
+            // Full list of configuration options available at:
+            // https://github.com/hakimel/reveal.js#configuration
+            Reveal.initialize({
+                              controls: true,
+                              progress: true,
+                              history: true,
+                              center: true,
+                              
+                              transition: 'slide', // none/fade/slide/convex/concave/zoom
+                              
+                              // Optional reveal.js plugins
+                              dependencies: [
+                                             { src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+                                             { src: 'plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+                                             { src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+                                             { src: 'plugin/highlight/highlight.js', async: true, condition: function() { return !!document.querySelector( 'pre code' ); }, callback: function() { hljs.initHighlightingOnLoad(); } },
+                                             { src: 'plugin/zoom-js/zoom.js', async: true },
+                                             { src: 'plugin/notes/notes.js', async: true }
+                                             ]
+                              });
+                              
+            </script>
+        
+    </body>
+</html>
