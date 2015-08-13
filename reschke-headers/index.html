@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+    
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+            
+        <title>Evolving HTTP Header Fields</title>
+        
+        <meta name="description" content="Evolving HTTP Header Fields">
+        <meta name="author" content="Julian Reschke">
+                
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
+                    
+        <link rel="stylesheet" href="css/reveal.css">
+        <link rel="stylesheet" href="css/theme/white.css" id="theme">
+        <link rel="stylesheet" href="lib/css/gb.css">
+                
+        <!-- Code syntax highlighting -->
+        <link rel="stylesheet" href="lib/css/zenburn.css">
+            
+        <!-- Printing and PDF exports -->
+        <script>
+            var link = document.createElement( 'link' );
+            link.rel = 'stylesheet';
+            link.type = 'text/css';
+            link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+            document.getElementsByTagName( 'head' )[0].appendChild( link );
+        </script>
+    </head>
+    
+    <body>
+        <div class="backlogo"></div>
+        
+        <div class="reveal">
+            
+            <!-- Any section element inside of this container is displayed as a slide -->
+            <div class="slides">
+                <section>
+                    <h1>Evolving HTTP Header Fields</h1>
+
+                    <p>
+                    <small>Created by <a href="https://www.greenbytes.de">Julian Reschke, greenbytes GmbH</a> / <a href="mailto:julian.reschke@greenbytes.de">julian.reschke@greenbytes.de</a></small>
+                    </p>
+                </section>
+                
+                
+                <section>
+                    <h1>Topics</h1>
+                    <ul>
+                        <li>Specification Problems</li>
+                        <li>Implementation Problems</li>
+                        <li>Internationalisation</li>
+                        <li>Further Observations</li>
+                        <li>A Concrete Proposal</li>
+                        <li>Other Thoughts</li>
+                    </ul>
+                </section>
+                
+                <section>
+                  <section>
+                      <h1>Specification Problems</h1>
+                      <ul>
+                        <li>many similar header fields with subtle parsing differences</li>
+                        <li>quoting, delimiters, allowable characters</li>
+                        <li>repeating header fields vs list syntax</li>
+                      </ul>
+                  </section>
+                  
+                  <section>
+                      <h2>Similar but different</h2>
+                      <p>
+                        List of parametrized tokens.
+                      </p>
+                      <p>
+                        WWW-Authenticate, Cache-Control, Content-Type, Link...
+                      </p>
+                      <ul>
+                        <li>parameters comma-separated (WWW-Authenticate) or semicolon-separated (Content-Type)</li>
+                        <li>token sometimes have values (Cache-Control)</li>
+                        <li>parameter values sometimes optional</li>
+                        <li>different types of token quoting (&lt;uri&gt; in Link header field)</li>
+                        <li>double quotes not always used for quoted-string</li>
+                      </ul>
+                  </section>
+                  
+                  <section>
+                      <h2>List Syntax</h2>
+                      <p>
+                        Spec allows recombining multiple field values using
+                        comma as delimiter
+                      </p>
+                      <p>
+                        If the field syntax allows unquoted commas, it may
+                        be impossible to detect whether recombination has
+                        happened 
+                      </p>
+                  </section>
+                </section>
+            
+                <section>
+                  <section>
+                      <h2>Implementation Problems</h2>
+                      <h3>Recipients</h3>
+                      <ul>
+                        <li>lots of ad-hoc parsers (simple string comparison, substring matching), for instance for Cache-Control and WWW-Authenticate</li>
+                        <li>inconsistent list handling (read all, read first only, read last only)</li>
+                        <li>race to the bottom: if one recipient accepts garbage, others will follow</li>
+                        <li>parsing bugs make it harder to introduce new things by using extension points</li>
+                      </ul>
+                  </section>
+
+                  <section>
+                      <h2>Implementation Problems</h2>
+                      <h3>Senders</h3>
+                      <ul>
+                        <li>header field values generated by string concatenation, causing invalid field values in edge cases (filename=foo bar.txt)</li>
+                      </ul>
+                  </section>
+                </section>
+                
+                <section>
+                <section>
+                    <h1>Internationalisation</h1>
+                    <ul>
+                      <li>no generic solution for non-ASCII characters</li>
+                      <li>this includes HTTP/2</li>
+                      <li>UTF-8 can work when intermediaries/libs do not interfere</li>
+                      <li>but HTTP APIs (XHR, servlet API) default to ISO-8859-1 (though it can be used to tunnel UTF-8)</li>
+                      <li>servers/clients depending on locales or context (referring pages), messages not self-contained anymore</li>
+                      </ul>
+                  </section>                  
+                    <section>
+                      <h2>RFC 5987</h2>
+                      <ul>
+                        <li>(ugly) solution for parameters, used in Content-Disposition and Link header fields</li>
+                        <li><tt>filename*= UTF-8''%e2%82%ac%20rates</tt></li>
+                      </ul>
+                    </section>
+                </section>
+                </section>
+
+                     <section>
+                      <h1>Further Observations</h1>
+                      <ul>
+<li>only few header fields need I18N (it needs to work, but it doesn't necessarily need to be compact)</li>
+<li>only few header fields are sent frequently thus need a compact representation ("DNT", "Date", "User-Agent", ...)</li>
+<li>HPACK is wonderful for field values that do not change all the time</li>
+                      </ul>
+                    </section>
+
+                    
+                  <section>
+                     <section>
+                      <h1>A Concrete Proposal</h1>
+                      <ul>
+<li>leave existing header fields alone for now</li>
+<li>start with a format that can be used in new header fields</li>
+<li>find something that helps in general (in http/1.1 and http/2) but which make things easier in the future (hpack2?)</li>
+<li>have a unified data model, and a syntax that works well for that data model</li>
+                      </ul>
+                    </section>
+
+                     <section>
+                      <h2>JSON</h2>
+                      <ul>
+                      <li><a href="http://greenbytes.de/tech/webdav/draft-reschke-http-jfv-latest.html">draft-reschke-http-jfv</a></li>
+<li>solves most of the issues mentioned before</li>
+<li>except verbosity</li>
+                      </ul>
+                    </section>
+                  </section>
+
+                     <section>
+                      <h1>Other Thoughts</h1>
+                      <ul>
+<li>Name overloading has been done before: "Sec-..." for XHR, "param*" in RFC 5987, but that doesn't mean we like it...</li>
+<li>Alternatives to defining new header fields: use existing fields such as "Link" and "Prefer"</li>
+                      </ul>
+                    </section>
+
+            </div>
+            
+        </div>
+        
+        <script src="lib/js/head.min.js"></script>
+        <script src="js/reveal.js"></script>
+        
+        <script>
+            
+            // Full list of configuration options available at:
+            // https://github.com/hakimel/reveal.js#configuration
+            Reveal.initialize({
+                              controls: true,
+                              progress: true,
+                              history: true,
+                              center: true,
+                              
+                              transition: 'slide', // none/fade/slide/convex/concave/zoom
+                              
+                              // Optional reveal.js plugins
+                              dependencies: [
+                                             { src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+                                             { src: 'plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+                                             { src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+                                             { src: 'plugin/highlight/highlight.js', async: true, condition: function() { return !!document.querySelector( 'pre code' ); }, callback: function() { hljs.initHighlightingOnLoad(); } },
+                                             { src: 'plugin/zoom-js/zoom.js', async: true },
+                                             { src: 'plugin/notes/notes.js', async: true }
+                                             ]
+                              });
+                              
+            </script>
+        
+    </body>
+</html>
